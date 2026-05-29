@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>CHION</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- REAL QR LIBRARY -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<!-- REAL CAMERA QR SCANNER -->
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    overflow:hidden;
+    background:#020402;
+    color:white;
+}
+
+/* BACKGROUND */
+
+.background{
+    position:fixed;
+    inset:0;
+    overflow:hidden;
+    background:
+    radial-gradient(circle at top left,#114d25 0%,transparent 40%),
+    radial-gradient(circle at bottom right,#06210d 0%,transparent 40%),
+    #020402;
+}
+
+.grid{
+    position:absolute;
+    width:200%;
+    height:200%;
+    background-image:
+    linear-gradient(rgba(0,255,120,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,120,0.08) 1px, transparent 1px);
+    background-size:60px 60px;
+    transform:rotate(15deg);
+    animation:gridMove 25s linear infinite;
+}
+
+@keyframes gridMove{
+    from{
+        transform:translate(-10%,-10%) rotate(15deg);
+    }
+    to{
+        transform:translate(-20%,-20%) rotate(15deg);
+    }
+}
+
+.glow{
+    position:absolute;
+    width:500px;
+    height:500px;
+    border-radius:50%;
+    background:rgba(0,255,120,0.08);
+    filter:blur(90px);
+    animation:float 10s ease-in-out infinite;
+}
+
+.glow:nth-child(3){
+    right:-100px;
+    bottom:-100px;
+    animation-delay:3s;
+}
+
+@keyframes float{
+    0%,100%{
+        transform:translateY(0px);
+    }
+    50%{
+        transform:translateY(-40px);
+    }
+}
+
+/* FLASH */
+
+.flash{
+    position:fixed;
+    inset:0;
+    background:#caffd9;
+    opacity:0;
+    pointer-events:none;
+    z-index:9999;
+}
+
+.flash.active{
+    animation:flashAnim 1.2s ease;
+}
+
+@keyframes flashAnim{
+    0%{opacity:0;}
+    20%{opacity:0.85;}
+    100%{opacity:0;}
+}
+
+/* CENTER */
+
+.center{
+    width:100vw;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    position:relative;
+    padding:20px;
+}
+
+/* LOGIN */
+
+.auth-box{
+    width:420px;
+    background:white;
+    color:black;
+    border-radius:32px;
+    padding:40px;
+    z-index:5;
+    transition:1s;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5);
+}
+
+.auth-box.hidden{
+    opacity:0;
+    transform:scale(0.7);
+    filter:blur(20px);
+    pointer-events:none;
+}
+
+.auth-title{
+    text-align:center;
+    font-size:34px;
+    font-weight:700;
+    margin-bottom:25px;
+}
+
+.input-group{
+    margin-bottom:18px;
+}
+
+.input-group input{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:16px;
+    background:#edf1ed;
+    font-size:16px;
+}
+
+.main-btn{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:16px;
+    background:#0f9a42;
+    color:white;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.main-btn:hover{
+    transform:scale(1.02);
+}
+
+.switch-text{
+    margin-top:15px;
+    text-align:center;
+    font-size:14px;
+}
+
+.switch-text span{
+    color:#0f9a42;
+    font-weight:600;
+    cursor:pointer;
+}
+
+/* DASHBOARD */
+
+.dashboard{
+    position:absolute;
+    inset:20px;
+    background:rgba(255,255,255,0.96);
+    color:black;
+    border-radius:35px;
+    padding:30px;
+    opacity:0;
+    transform:scale(0.9);
+    pointer-events:none;
+    transition:1s;
+    overflow:auto;
+}
+
+.dashboard.active{
+    opacity:1;
+    transform:scale(1);
+    pointer-events:auto;
+}
+
+.top{
+    display:flex;
+    gap:20px;
+    flex-wrap:wrap;
+}
+
+.card{
+    background:white;
+    border-radius:25px;
+    padding:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.08);
+}
+
+.welcome{
+    flex:2;
+    min-width:300px;
+}
+
+.balance{
+    width:220px;
+    text-align:center;
+}
+
+.balance h1{
+    font-size:52px;
+    color:#0f9a42;
+}
+
+.graph{
+    flex:1;
+    min-width:300px;
+}
+
+.actions{
+    margin-top:30px;
+}
+
+.action-btn{
+    padding:16px 24px;
+    border:none;
+    border-radius:18px;
+    background:#0f9a42;
+    color:white;
+    font-weight:600;
+    cursor:pointer;
+    margin-right:10px;
+    margin-bottom:10px;
+}
+
+/* QR */
+
+.qr-card{
+    margin-top:30px;
+    text-align:center;
+}
+
+#qrcode{
+    margin-top:20px;
+    display:flex;
+    justify-content:center;
+}
+
+#qrcode img{
+    border-radius:20px;
+    padding:15px;
+    background:white;
+}
+
+/* SIDE PANEL */
+
+.side-panel{
+    position:fixed;
+    top:0;
+    right:-450px;
+    width:420px;
+    height:100vh;
+    background:white;
+    color:black;
+    z-index:999;
+    transition:0.5s;
+    overflow:auto;
+    padding:30px;
+    box-shadow:-10px 0 40px rgba(0,0,0,0.4);
+}
+
+.side-panel.active{
+    right:0;
+}
+
+.side-panel h2{
+    margin-bottom:20px;
+}
+
+.purchase-item{
+    background:#edf1ed;
+    padding:16px;
+    border-radius:16px;
+    margin-bottom:12px;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.purchase-item:hover{
+    background:#dff5e6;
+    transform:translateX(5px);
+}
+
+.custom-box{
+    margin-top:20px;
+}
+
+.custom-box input{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:14px;
+    background:#edf1ed;
+}
+
+.verify-box{
+    margin-top:25px;
+    background:#f1fff5;
+    border-radius:20px;
+    padding:20px;
+}
+
+#reader{
+    width:100%;
+    margin-top:20px;
+    overflow:hidden;
+    border-radius:20px;
+}
+
+/* MOBILE */
+
+@media(max-width:850px){
+
+    .top{
+        flex-direction:column;
+    }
+
+    .side-panel{
+        width:100%;
+    }
+
+}
+
+</style>
+</head>
+<body>
+
+<div class="background">
+    <div class="grid"></div>
+    <div class="glow"></div>
+    <div class="glow"></div>
+</div>
+
+<div class="flash" id="flash"></div>
+
+<div class="center">
+
+    <!-- LOGIN -->
+
+    <div class="auth-box" id="authBox">
+
+        <div class="auth-title" id="formTitle">
+            CHION LOGIN
+        </div>
+
+        <!-- LOGIN -->
+
+        <div id="loginForm">
+
+            <div class="input-group">
+                <input type="text" placeholder="Username" id="loginUser">
+            </div>
+
+            <div class="input-group">
+                <input type="password" placeholder="Password" id="loginPass">
+            </div>
+
+            <button class="main-btn" onclick="login()">
+                Login
+            </button>
+
+            <div class="switch-text">
+                Don’t have an account?
+                <span onclick="switchToSignup()">
+                    Create one
+                </span>
+            </div>
+
+        </div>
+
+        <!-- SIGNUP -->
+
+        <div id="signupForm" style="display:none;">
+
+            <div class="input-group">
+                <input type="text" placeholder="Create Username" id="signupUser">
+            </div>
+
+            <div class="input-group">
+                <input type="password" placeholder="Create Password" id="signupPass">
+            </div>
+
+            <div class="input-group">
+                <input type="password" placeholder="Verify Password" id="signupVerify">
+            </div>
+
+            <button class="main-btn" onclick="createAccount()">
+                Create Account
+            </button>
+
+            <div class="switch-text">
+                Already have an account?
+                <span onclick="switchToLogin()">
+                    Login
+                </span>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- DASHBOARD -->
+
+    <div class="dashboard" id="dashboard">
+
+        <div class="top">
+
+            <div class="card welcome">
+
+                <h1>
+                    Welcome User:
+                    <span id="displayUser">
+                        RomanEmpire
+                    </span>
+                </h1>
+
+                <p style="margin-top:10px;">
+                    CHION household economy system.
+                    Humanity has finally monetised dishwashing.
+                </p>
+
+            </div>
+
+            <div class="card balance">
+
+                <p>Amount of CHIONS</p>
+
+                <h1 id="balanceText">
+                    120
+                </h1>
+
+            </div>
+
+            <div class="card graph">
+
+                <canvas id="financeChart"></canvas>
+
+            </div>
+
+        </div>
+
+        <!-- ACTIONS -->
+
+        <div class="actions">
+
+            <button class="action-btn" onclick="openPanel()">
+                Transactions
+            </button>
+
+            <button class="action-btn" onclick="receivePayment()">
+                Receive Payment
+            </button>
+
+        </div>
+
+        <!-- QR -->
+
+        <div class="card qr-card">
+
+            <h2>Your QR Code</h2>
+
+            <div id="qrcode"></div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- TRANSACTION PANEL -->
+
+<div class="side-panel" id="panel">
+
+    <h2>Select Purchase</h2>
+
+    <div class="purchase-item" onclick="purchase('Cleaning dishes',5)">
+        Cleaning dishes - 5 CHIONS
+    </div>
+
+    <div class="purchase-item" onclick="purchase('Doing washing',3)">
+        Doing washing - 3 CHIONS
+    </div>
+
+    <div class="purchase-item" onclick="purchase('Weeding',10)">
+        Weeding - 10 CHIONS
+    </div>
+
+    <div class="purchase-item" onclick="purchase('Buy chips',5)">
+        Buy chips - 5 CHIONS
+    </div>
+
+    <div class="purchase-item" onclick="purchase('Buy dinner',3)">
+        Buy dinner - 3 CHIONS
+    </div>
+
+    <div class="purchase-item" onclick="purchase('Buy drink',2)">
+        Buy drink - 2 CHIONS
+    </div>
+
+    <div class="purchase-item" onclick="purchase('Have shower',3)">
+        Have shower - 3 CHIONS
+    </div>
+
+    <div class="purchase-item" onclick="donation()">
+        Donation
+    </div>
+
+    <div class="custom-box">
+
+        <input type="number" id="customAmount" placeholder="Custom CHION amount">
+
+    </div>
+
+    <!-- REAL CAMERA -->
+
+    <div class="verify-box">
+
+        <h3>QR Verification Scanner</h3>
+
+        <p style="margin-top:10px;">
+            Camera permission required for transactions.
+        </p>
+
+        <div id="reader"></div>
+
+    </div>
+
+    <button class="main-btn" style="margin-top:20px;" onclick="closePanel()">
+        Close
+    </button>
+
+</div>
+
+<script>
+
+/* USER */
+
+let currentUser = "RomanEmpire";
+let balance = 120;
+
+/* FLASH */
+
+function flash(){
+
+    const flash = document.getElementById("flash");
+
+    flash.classList.add("active");
+
+    setTimeout(()=>{
+        flash.classList.remove("active");
+    },1200);
+
+}
+
+/* SWITCH FORMS */
+
+function switchToSignup(){
+
+    flash();
+
+    setTimeout(()=>{
+
+        document.getElementById("loginForm").style.display="none";
+        document.getElementById("signupForm").style.display="block";
+        document.getElementById("formTitle").innerText="CREATE ACCOUNT";
+
+    },300);
+
+}
+
+function switchToLogin(){
+
+    flash();
+
+    setTimeout(()=>{
+
+        document.getElementById("signupForm").style.display="none";
+        document.getElementById("loginForm").style.display="block";
+        document.getElementById("formTitle").innerText="CHION LOGIN";
+
+    },300);
+
+}
+
+/* CREATE ACCOUNT */
+
+function createAccount(){
+
+    const user = document.getElementById("signupUser").value;
+    const pass = document.getElementById("signupPass").value;
+    const verify = document.getElementById("signupVerify").value;
+
+    if(pass !== verify){
+
+        alert("Passwords do not match.");
+        return;
+
+    }
+
+    currentUser = user;
+
+    flash();
+
+    setTimeout(()=>{
+
+        switchToLogin();
+
+    },700);
+
+}
+
+/* LOGIN */
+
+function login(){
+
+    const user = document.getElementById("loginUser").value;
+
+    if(user.trim() !== ""){
+
+        currentUser = user;
+
+    }
+
+    flash();
+
+    document.getElementById("displayUser").innerText = currentUser;
+
+    /* CREATE REAL QR */
+
+    document.getElementById("qrcode").innerHTML = "";
+
+    new QRCode(document.getElementById("qrcode"), {
+        text: currentUser,
+        width:220,
+        height:220,
+        colorDark:"#000000",
+        colorLight:"#ffffff",
+        correctLevel:QRCode.CorrectLevel.H
+    });
+
+    setTimeout(()=>{
+
+        document.getElementById("authBox").classList.add("hidden");
+
+        setTimeout(()=>{
+
+            document.getElementById("dashboard").classList.add("active");
+
+        },600);
+
+    },500);
+
+}
+
+/* PANEL */
+
+function openPanel(){
+
+    flash();
+
+    document.getElementById("panel").classList.add("active");
+
+    startScanner();
+
+}
+
+function closePanel(){
+
+    document.getElementById("panel").classList.remove("active");
+
+    stopScanner();
+
+}
+
+/* PURCHASE */
+
+function purchase(name,cost){
+
+    balance -= cost;
+
+    document.getElementById("balanceText").innerText = balance;
+
+    flash();
+
+    alert(
+        name +
+        " purchased for " +
+        cost +
+        " CHIONS."
+    );
+
+}
+
+/* DONATION */
+
+function donation(){
+
+    let amount = document.getElementById("customAmount").value;
+
+    if(amount === ""){
+
+        amount = 10;
+
+    }
+
+    balance -= Number(amount);
+
+    document.getElementById("balanceText").innerText = balance;
+
+    flash();
+
+    alert(
+        "Donation of " +
+        amount +
+        " CHIONS completed."
+    );
+
+}
+
+/* RECEIVE */
+
+function receivePayment(){
+
+    flash();
+
+    alert(
+        "Waiting for another user to scan your QR code."
+    );
+
+}
+
+/* CHART */
+
+const ctx = document.getElementById('financeChart');
+
+new Chart(ctx, {
+    type:'line',
+    data:{
+        labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+        datasets:[{
+            data:[10,20,30,40,55,65,80],
+            tension:0.4
+        }]
+    },
+    options:{
+        responsive:true,
+        plugins:{
+            legend:{
+                display:false
+            }
+        }
+    }
+});
+
+/* REAL QR CAMERA SCANNER */
+
+let scanner;
+
+function startScanner(){
+
+    if(scanner){
+        return;
+    }
+
+    scanner = new Html5Qrcode("reader");
+
+    scanner.start(
+
+        { facingMode: "environment" },
+
+        {
+            fps:10,
+            qrbox:250
+        },
+
+        function(decodedText){
+
+            flash();
+
+            alert(
+                "SCANNED USER: " +
+                decodedText +
+                "\nTransaction Verified."
+            );
+
+        },
+
+        function(error){
+
+            /* ignore */
+
+        }
+
+    ).catch(err=>{
+
+        console.log(err);
+
+        alert(
+            "Camera permission denied or unavailable."
+        );
+
+    });
+
+}
+
+function stopScanner(){
+
+    if(scanner){
+
+        scanner.stop().then(()=>{
+
+            scanner.clear();
+            scanner = null;
+
+        }).catch(err=>{
+
+            console.log(err);
+
+        });
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
